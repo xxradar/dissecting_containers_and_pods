@@ -118,6 +118,17 @@ Explore and untar all the layers
 ```
 tar xfv ./layer.tar
 ```
+### Vulnerability scanners
+```
+sudo apt-get install wget apt-transport-https gnupg lsb-release
+wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+sudo apt-get update
+sudo apt-get install trivy
+```
+```
+trivy image xxradar/myimage:01
+```
 ## Dissecting a running container
 ```
 mkdir ../lab4
