@@ -54,22 +54,19 @@ CMD bash
 EOF
 ```
 ```
-docker build -t myimage ./.
+docker build -t mytcpdumper ./.
 ```
 ```
-docker run -it myimage
+docker run -it mytcpdumper
 ```
 ```
-docker tag myimage xxradar/myimage:01
+docker tag myimage xxradar/mytcpdumper:01
 ```
 ```
-docker login
+docker push xxradar/mytcpdumper:01
 ```
 ```
-docker push xxradar/myimage:01
-```
-```
-docker run -it xxradar/myimage:01
+docker run -it xxradar/mytcpdumper:01
 ```
 ### Creating our second image
 ```
