@@ -90,7 +90,7 @@ docker build -t mytcpdumper ./.
 docker run -it mytcpdumper
 ```
 ```
-docker tag myimage xxradar/mytcpdumper:01
+docker tag mytcpdumper xxradar/mytcpdumper:01
 ```
 ```
 docker push xxradar/mytcpdumper:01
