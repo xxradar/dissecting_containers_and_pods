@@ -9,7 +9,7 @@
 ### Install docker
 ```
 sudo apt-get update
-sudo apt-get install -y jq 
+sudo apt-get install -y jq tree 
 ```
 ```
 curl -fsSL https://get.docker.com -o get-docker.sh
