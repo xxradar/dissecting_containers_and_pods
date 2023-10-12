@@ -183,9 +183,6 @@ curl https://www.radarhack.com/dir/demo/hosts.txt -o /etc/hosts
 curl www.google.com
 ```
 ```
-curl www.google.com
-```
-```
 cat /usr/share/nginx/html/index.html
 ```
 ```
