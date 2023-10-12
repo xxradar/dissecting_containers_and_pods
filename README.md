@@ -54,33 +54,6 @@ CMD bash
 EOF
 ```
 ```
-docker build -t mytcpdumper ./.
-```
-```
-docker run -it mytcpdumper
-```
-```
-docker tag mytcpdumper xxradar/mytcpdumper:01
-```
-```
-docker push xxradar/mytcpdumper:01
-```
-```
-docker run -it xxradar/mytcpdumper:01
-```
-### Creating our second image
-```
-mkdir ./lab2
-cd lab2
-```
-```
-cat >Dockerfile <<EOF
-FROM xxradar/myimage:01
-RUN apt-get update && apt-get install -y dnsutils tcpdump
-CMD tcpdump -i any
-EOF
-```
-```
 docker build -t myimage ./.
 ```
 ```
@@ -98,10 +71,37 @@ docker push xxradar/myimage:01
 ```
 docker run -it xxradar/myimage:01
 ```
+### Creating our second image
+```
+mkdir ./lab2
+cd lab2
+```
+```
+cat >Dockerfile <<EOF
+FROM xxradar/myimage:01
+RUN apt-get update && apt-get install -y dnsutils tcpdump
+CMD tcpdump -i any
+EOF
+```
+```
+docker build -t mytcpdumper ./.
+```
+```
+docker run -it mytcpdumper
+```
+```
+docker tag myimage xxradar/mytcpdumper:01
+```
+```
+docker push xxradar/mytcpdumper:01
+```
+```
+docker run -it xxradar/mytcpdumper:01
+```
 ## Dissecting the image
 ```
-mkdir ../lab2
-cd ../lab2
+mkdir ../lab3
+cd ../lab3
 ```
 ```
 docker save xxradar/myimage:01 >image.tar
@@ -119,8 +119,8 @@ tar xfv ./layer.tar
 ```
 ## Dissecting a running container
 ```
-mkdir ../lab3
-cd ../lab3
+mkdir ../lab4
+cd ../lab4
 ```
 ```
 docker inspect www
@@ -150,8 +150,8 @@ sudo cat /var/lib/docker/overlay2/dbe8c23813804c767695f142a99d5f1669552b853c989f
 ```
 ### Processes and namespaces
 ```
-mkdir ../lab4
-cd ../lab4
+mkdir ../lab5
+cd ../lab5
 ```
 ```
 export PID=$(docker inspect www | jq -r '.[].State.Pid')
