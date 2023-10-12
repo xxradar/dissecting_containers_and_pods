@@ -193,6 +193,9 @@ curl -kv $IP:8081
 ```
 ### Privileged
 ```
+lsblk
+```
+```
 docker run -d  --privileged  --name www3 nginx:1.25
 ```
 ```
