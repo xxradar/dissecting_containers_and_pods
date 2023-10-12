@@ -71,7 +71,36 @@ docker push xxradar/myimage:01
 ```
 docker run -it xxradar/myimage:01
 ```
-
+### Creating our second image
+```
+mkdir ./lab2
+cd lab2
+```
+```
+cat >Dockerfile <<EOF
+FROM xxradar/myimage:01
+RUN apt-get update && apt-get install -y dnsutils tcpdump
+CMD tcpdump -i any
+EOF
+```
+```
+docker build -t myimage ./.
+```
+```
+docker run -it myimage
+```
+```
+docker tag myimage xxradar/myimage:01
+```
+```
+docker login
+```
+```
+docker push xxradar/myimage:01
+```
+```
+docker run -it xxradar/myimage:01
+```
 ## Dissecting the image
 ```
 mkdir ../lab2
