@@ -36,7 +36,7 @@ curl -kv $IP:8080
 ```
 curl -kv $IP:8081
 ```
-### Creating our first image
+### Creating a first image
 ```
 mkdir ./lab1
 cd lab1
@@ -71,7 +71,7 @@ docker push xxradar/myimage:01
 ```
 docker run -it xxradar/myimage:01
 ```
-### Creating our second image
+### Creating a second image
 ```
 mkdir ./lab2
 cd lab2
