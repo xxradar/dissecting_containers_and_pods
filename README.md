@@ -183,10 +183,16 @@ curl https://www.radarhack.com/dir/demo/hosts.txt -o /etc/hosts
 curl www.google.com
 ```
 ```
+curl www.google.com
+```
+```
 cat /usr/share/nginx/html/index.html
 ```
 ```
 echo hacking at annacon >> /usr/share/nginx/html/index.html
+```
+```
+curl -kv $IP:8081
 ```
 ### Privileged
 ```
