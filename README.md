@@ -217,8 +217,10 @@ mount /dev/vda1 /tmp/host-fs/
 ```
 ```
 cd  /tmp/host-fs/
+# cat /tmp/host-fs/root/.docker/config.json
+
 # cat /tmp/host-fs/home/ubuntu/.docker/config.json
-cat /tmp/host-fs/home/root/.docker/config.json
+# cat /tmp/host-fs/home/ubuntu/.docker/config.json
 
 ```
 ### Mounting issues
