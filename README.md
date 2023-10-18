@@ -198,7 +198,7 @@ cat /usr/share/nginx/html/index.html
 echo hacking at annacon >> /usr/share/nginx/html/index.html
 ```
 ```
-curl -kv $IP:8081
+curl -kv 127.0.0.1:8080
 ```
 ### Privileged
 ```
