@@ -340,3 +340,38 @@ docker run -d --name tetragon-container --rm --pull always \
     quay.io/cilium/tetragon-ci:latest                   \
     --tracing-policy /tracing_policy.yaml
 ```
+## Running pods is easy
+### Create a multi-container pod
+```
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mcpod
+spec:
+  volumes:
+  - name: demo
+    emptyDir: {}
+  containers:
+  - name: nginx
+    image: nginx
+    volumeMounts:
+    - name: demo
+      mountPath: /demo
+  - name: 2nd
+    image: redis
+    volumeMounts:
+    - name: demo
+      mountPath: /data
+EOF
+```
+```
+kubectl get po -o wide
+```
+On the node
+```
+sudo ps -ax -n -o pid,netns,utsns,ipcns,mntns,pidns,cmd | grep <PID>
+```
+```
+sudo ps -ax -n -o pid,netns,utsns,ipcns,mntns,pidns,cmd | grep <NETNS>
+```
