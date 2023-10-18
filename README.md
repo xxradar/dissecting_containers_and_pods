@@ -74,7 +74,7 @@ docker run -it xxradar/myimage:01
 ```
 ### a second image using the first as base
 ```
-mkdir ./lab2
+mkdir ../lab2
 cd lab2
 ```
 ```
