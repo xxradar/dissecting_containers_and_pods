@@ -358,7 +358,7 @@ spec:
     volumeMounts:
     - name: demo
       mountPath: /demo
-  - name: 2nd
+  - name: redis
     image: redis
     volumeMounts:
     - name: demo
@@ -374,4 +374,7 @@ sudo ps -ax -n -o pid,netns,utsns,ipcns,mntns,pidns,cmd | grep <PID>
 ```
 ```
 sudo ps -ax -n -o pid,netns,utsns,ipcns,mntns,pidns,cmd | grep <NETNS>
+```
+```
+apt-get update && apt-get install procps
 ```
