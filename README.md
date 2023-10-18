@@ -295,7 +295,7 @@ docker run -d --name tetragon-container --rm --pull always \
 docker exec tetragon-container tetra getevents -o compact
 ```
 ```
-root@ip-172-31-31-30:~# cat ./tracing_policy.yaml
+root@ip-172-31-31-30:~# cat > ./tracing_policy.yaml <<EOF
 # This tracing policy 'connect-only-local-addrs' will report attempts
 # to make outbound TCP connections to any IP address other than those
 # within the 127.0.0.0/8 CIDR, from the binary /usr/bin/curl. In
@@ -333,6 +333,7 @@ spec:
         - "/usr/bin/curl"
       matchActions:
       - action: Sigkill
+EOF
 ```
 ```
 docker run -d --name tetragon-container --rm --pull always \
