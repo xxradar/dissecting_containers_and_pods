@@ -250,6 +250,19 @@ docker run -it --rm --pid host xxradar/hackon
 ```
 docker run -it --rm --net host xxradar/hackon
 ```
+### Notes:
+```
+findmnt -N $PID
+sudo cat  /proc/24302/mountinfo
+
+sudo filecap /usr/bin/ping
+sudo filecap -a 2>/dev/null
+
+pscap
+sysctl net.ipv4.ip_unprivileged_port_start
+
+https://github.com/genuinetools/amicontained (TBC)
+```
 ## eBPF
 ### Tracee
 ```
