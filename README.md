@@ -260,6 +260,7 @@ sudo filecap -a 2>/dev/null
 
 pscap
 sysctl net.ipv4.ip_unprivileged_port_start
+ls -la /proc/sys/net/ipv4/
 
 https://github.com/genuinetools/amicontained (TBC)
 ```
