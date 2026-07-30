@@ -282,6 +282,36 @@ cat ./extract/layer_4/secret.txt
 > for you) is a convenient one-shot — see the community `extract-image-blobs.sh`
 > pattern, or just reuse the loops above.
 
+#### The secret rides along to derived images
+
+Because `mytcpdumper` was built `FROM myimage`, it inherits *every* one of
+myimage's layers — including the `ADD secret.txt` layer and the later whiteout
+that "deletes" it. So the exact same secret is recoverable from the derived
+image too:
+
+```
+docker save mytcpdumper > tcpdumper.tar
+mkdir tcp && tar xf tcpdumper.tar -C tcp && cd tcp
+
+mkdir -p extract
+i=0
+for blob in blobs/sha256/* ; do
+  if tar -tf "$blob" >/dev/null 2>&1 ; then
+    i=$((i+1)); mkdir -p "extract/layer_$i"
+    tar -xf "$blob" -C "extract/layer_$i" 2>/dev/null
+  fi
+done
+find ./extract -name secret.txt -exec cat {} \;
+# -> My Annacon secret
+```
+
+The takeaway: **a leaked secret propagates to every downstream image.** Anything
+built `FROM` a base that once contained a credential carries that credential
+forward, even if the base later "removed" it. The fix is to never let the secret
+enter a layer in the first place — use build secrets (`RUN --mount=type=secret`),
+multi-stage builds that copy only clean artefacts, or runtime injection — rather
+than adding it and deleting it afterwards.
+
 ### Scanning with Trivy
 
 Unpacking layers by hand is great for understanding; in practice you run a
