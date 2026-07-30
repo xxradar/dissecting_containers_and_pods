@@ -866,3 +866,19 @@ sudo ps -ax -n -o pid,netns,utsns,ipcns,mntns,pidns,cmd | grep -E "$NGINX_PID|$R
 The pause container, nginx, and redis should all show the same `netns` value,
 while each has its own `mntns` - exactly the "shared network, private
 filesystem" model that defines a pod.
+
+## Wrapping up
+
+If you worked through all five labs, the "magic" should be gone. A container is
+just a Linux process the kernel has given a private view of the world -
+namespaces slice up what it can see, cgroups cap what it can use, and capabilities
+decide what it can do, all layered on a copy-on-write filesystem stacked from
+immutable image layers plus one writable top. Everything we did was a
+consequence of that: secrets survive in the layer where they were added, runtime
+writes land only in the upper snapshot, and a single loosened flag -
+`--privileged`, a mounted Docker socket, `--pid host` - collapses the isolation
+back into full host access. Kubernetes changes none of the fundamentals; a pod
+is simply a set of these processes deliberately sharing some namespaces. Carry
+that model with you: whether you are hardening an image, scoping a deployment, or
+threat-modelling a cluster, the questions are always the same - what does this
+process share, what can it reach, and what would it take to break out.
