@@ -885,8 +885,8 @@ Everything in this lab was a direct consequence of that model:
 
 - Secrets survive in the layer where they were added, even after a later `rm`.
 - Runtime writes land only in the container's writable upper snapshot.
-- A single loosened flag - `--privileged`, a mounted Docker socket, or
-  `--pid host` - collapses the isolation straight back into full host access.
+- A single loosened flag (`--privileged`, a mounted Docker socket, or
+  `--pid host`) collapses the isolation straight back into full host access.
 
 Kubernetes changes none of these fundamentals: a pod is simply a set of these
 processes deliberately sharing some namespaces.
