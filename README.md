@@ -110,7 +110,7 @@ to run it. Every instruction in a `Dockerfile` that changes the filesystem
 shared between images, which is why the second image below reuses almost all of
 the first one's bytes.
 
-### Lab 1 - a first image (with a planted secret)
+### Lab 1: Building the first image (with a planted secret)
 
 > **Why this image is deliberately broken.** We `ADD` a secret into an early
 > layer and then `rm` it in a later layer. At runtime the file *looks* gone -
@@ -153,7 +153,7 @@ cat /secret.txt       # -> No such file or directory  (it looks deleted)
 exit                  # leave the container
 ```
 
-### Lab 2 - layering a second image on the first
+### Lab 2: Layering a second image on top
 
 Here we build a new image *on top of* the first one. Because the build resolves
 `FROM myimage` from your local image store, no registry or network access is
