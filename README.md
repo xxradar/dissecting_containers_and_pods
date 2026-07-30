@@ -586,17 +586,43 @@ docker run -it --rm --net host xxradar/hackon
 
 ### Notes - capabilities and mounts
 
-Useful odds and ends for poking at namespaces and capabilities:
+A few more tools for poking at a container's mounts and capabilities. Most need
+a target PID, so grab one first (here, the `www` nginx container from the
+earlier labs) - otherwise `findmnt -N` fails with *"option requires an
+argument"* and `/proc//mountinfo` does not exist:
 
 ```
-findmnt -N $PID
+PID=$(docker inspect www | jq -r '.[].State.Pid')
+```
+
+Inspect that process's mount table. `findmnt` takes the PID as the argument to
+`-N`; `/proc/<PID>/mountinfo` is the raw source it reads:
+
+```
+findmnt -N "$PID"
 sudo cat /proc/$PID/mountinfo
+```
 
-sudo filecap /usr/bin/ping
-sudo filecap -a 2>/dev/null
+The `filecap` / `pscap` / `netcap` tools report file and process capabilities,
+but they are **not installed by default** - they live in `libcap-ng-utils`
+(while the `getcap` / `setcap` pair lives in `libcap2-bin`):
 
-pscap
-sysctl net.ipv4.ip_unprivileged_port_start
+```
+sudo apt-get install -y libcap-ng-utils libcap2-bin
+```
+```
+pscap                        # capabilities of running processes
+sudo filecap /usr/bin/ping   # file capabilities on a binary (e.g. cap_net_raw)
+sudo filecap -a 2>/dev/null  # sweep every file capability on the host
+getcap /usr/bin/ping         # same idea, via libcap2-bin
+```
+
+Finally, the sysctl that decides which ports count as "privileged". The default
+is `1024`, so binding below it needs `CAP_NET_BIND_SERVICE`; lowering this value
+lets unprivileged processes bind low ports:
+
+```
+sysctl net.ipv4.ip_unprivileged_port_start   # -> 1024 by default
 ls -la /proc/sys/net/ipv4/
 ```
 
@@ -623,6 +649,13 @@ docker run --name tracee --rm -it \
    -v /etc/os-release:/etc/os-release-host:ro \
    aquasec/tracee:latest
 ```
+
+> On cloud kernels (e.g. AWS EC2) Tracee logs a warning like *"KConfig: could
+> not check enabled kconfig features ... /boot/config-$(uname -r): no such file
+> or directory"*. This is harmless - those images simply don't ship the kernel
+> config in `/boot`, so Tracee falls back to assumed values and keeps tracing.
+> If the file does exist on your host, mount it to silence the warning:
+> `-v /boot/config-$(uname -r):/boot/config-$(uname -r):ro`.
 
 ### Falco
 
