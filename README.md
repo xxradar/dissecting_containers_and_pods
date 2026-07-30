@@ -752,14 +752,55 @@ spec:
 EOF
 ```
 ```
-kubectl get po -o wide
+kubectl get pod mcpod -o wide
 ```
 
-On the node, the same namespace inspection from Lab 5 applies. Find the pod's
-processes by PID, then confirm that the two containers share a network namespace
-but keep separate mount namespaces:
+### Finding the container PIDs on the node
+
+`kubectl` deals in Kubernetes objects, but to inspect namespaces you need the
+**host PID** of each container's process. The `kubectl get ... -o wide` above
+shows which node the pod landed on - SSH to that node for the rest.
+
+Kubernetes talks to the container runtime through the CRI, so on a containerd
+node use `crictl`. Point it at the containerd socket if it is not already set in
+`/etc/crictl.yaml`:
 
 ```
-sudo ps -ax -n -o pid,netns,utsns,ipcns,mntns,pidns,cmd | grep <PID>
-sudo ps -ax -n -o pid,netns,utsns,ipcns,mntns,pidns,cmd | grep <NETNS>
+export CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock
 ```
+
+Start from the **pod sandbox** - the `pause` container that owns the shared
+namespaces the app containers join:
+
+```
+SANDBOX=$(sudo crictl pods --name mcpod -q)
+sudo crictl inspectp "$SANDBOX" | jq '.info.pid'   # PID of the pause container
+```
+
+Then the application containers. `crictl inspect ... | jq '.info.pid'` gives the
+host PID of each:
+
+```
+sudo crictl ps --pod "$SANDBOX"                    # list the pod's containers
+NGINX_PID=$(sudo crictl inspect "$(sudo crictl ps --pod "$SANDBOX" --name nginx -q)" | jq -r '.info.pid')
+REDIS_PID=$(sudo crictl inspect "$(sudo crictl ps --pod "$SANDBOX" --name redis -q)" | jq -r '.info.pid')
+echo "nginx=$NGINX_PID redis=$REDIS_PID"
+```
+
+Or read every container PID straight from containerd's Kubernetes namespace:
+
+```
+sudo ctr -n k8s.io tasks ls        # each task (container) listed with its PID
+```
+
+With those PIDs, the same namespace inspection from Lab 5 applies. Confirm that
+nginx and redis **share the network namespace** (same `netns`) but keep
+**separate mount namespaces** (different `mntns`):
+
+```
+sudo ps -ax -n -o pid,netns,utsns,ipcns,mntns,pidns,cmd | grep -E "$NGINX_PID|$REDIS_PID"
+```
+
+The pause container, nginx, and redis should all show the same `netns` value,
+while each has its own `mntns` - exactly the "shared network, private
+filesystem" model that defines a pod.
