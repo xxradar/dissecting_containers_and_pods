@@ -670,6 +670,24 @@ echo "deb https://download.falco.org/packages/deb stable main" \
 sudo apt-get update -y
 sudo apt-get install -y falco
 ```
+
+Modern Falco (0.44+) uses a `modern_ebpf` probe, which brings two prerequisites
+you will hit on a busy cloud host:
+
+- **Run it as root.** As a normal user the probe fails with `libpman: ring
+  buffer map type is not supported (Operation not permitted)` - the eBPF ring
+  buffer needs privileges. Use `sudo`.
+- **Raise the inotify limits.** Falco watches its config via inotify; if the
+  host's limits are exhausted you get `Failed to allocate directory watch: Too
+  many open files` / `could not initialize inotify handler`. Bump them:
+
+```
+sudo sysctl -w fs.inotify.max_user_instances=8192
+sudo sysctl -w fs.inotify.max_user_watches=524288
+```
+
+Save the rule to `falco.rule`:
+
 ```
 - rule: spawned_process_in_test_container
   desc: A process was spawned in the test container.
@@ -677,8 +695,19 @@ sudo apt-get install -y falco
   output: "%evt.time,%user.uid,%proc.name,%container.id,%container.name,command=%proc.cmdline"
   priority: WARNING
 ```
+
+Run Falco with just this rule (as root). The `-r` flag loads only your file, so
+the default ruleset is intentionally left out for this demo:
+
 ```
-falco -r ./falco.rule
+sudo falco -r ./falco.rule
+```
+
+In another terminal, trigger it by spawning a process inside a container named
+`falco-test`. Falco should immediately print a `WARNING` line for the `execve`:
+
+```
+docker run --rm --name falco-test alpine sh -c 'echo hello from falco-test; sleep 2'
 ```
 
 ### Tetragon
