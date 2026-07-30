@@ -28,7 +28,7 @@ The lab is organised into five working directories that build on each other:
 > image store** enabled by default, and this lab assumes it. The change matters
 > in two places you will hit below:
 >
-> - `docker inspect` no longer fills in the old `GraphDriver` block - it returns
+> - `docker inspect` no longer fills in the old `GraphDriver` block — it returns
 >   `null`.
 > - Image and container filesystem data moved out of `/var/lib/docker/overlay2/`
 >   into the containerd snapshotter tree.
@@ -47,13 +47,13 @@ The lab is organised into five working directories that build on each other:
 
 ### The Docker host
 
-You need a Linux host you control - the lab was written for an Ubuntu VM with a
+You need a Linux host you control — the lab was written for an Ubuntu VM with a
 public IP and inbound TCP ports `80`, `443`, `8080`, and `8081` open in the
 security group.
 
 ### Installing Docker
 
-`jq` and `tree` are used throughout - `jq` to slice the JSON that `docker
+`jq` and `tree` are used throughout — `jq` to slice the JSON that `docker
 inspect` emits, `tree` to visualise unpacked image layers. Install them first
 (on a fresh host `tree` is usually **not** present):
 
@@ -70,7 +70,7 @@ sudo sh ./get-docker.sh
 ```
 
 Adding your user to the `docker` group lets you drop the `sudo` on every
-command. Note that this is effectively **root-equivalent** - anyone in the
+command. Note that this is effectively **root-equivalent** — anyone in the
 `docker` group can mount the host filesystem into a container, so treat group
 membership as an administrative privilege.
 
@@ -84,7 +84,7 @@ newgrp docker
 
 Each `docker run` below starts an nginx web server and publishes its internal
 port `80` on a different host port. The two containers use different image tags
-(`1.24` and `1.25`), so they also pull slightly different layers - handy later
+(`1.24` and `1.25`), so they also pull slightly different layers — handy later
 when comparing digests.
 
 ```
@@ -113,7 +113,7 @@ the first one's bytes.
 ### Lab 1: Building the first image (with a planted secret)
 
 > **Why this image is deliberately broken.** We `ADD` a secret into an early
-> layer and then `rm` it in a later layer. At runtime the file *looks* gone -
+> layer and then `rm` it in a later layer. At runtime the file *looks* gone —
 > but because image layers are immutable, the secret is still sitting in the
 > layer where it was added. We recover it in Lab 3. This mirrors a very common
 > real-world mistake: baking a credential into a build and "removing" it in a
@@ -140,7 +140,7 @@ docker build -t myimage ./.
 ```
 
 Run the image interactively and poke around. Notice that the secret appears to
-be gone from inside the running container - remember that when we recover it
+be gone from inside the running container — remember that when we recover it
 from the layers later:
 
 ```
@@ -186,7 +186,7 @@ docker run -it mytcpdumper
 ### (Optional) Publishing to a registry
 
 Everything in this lab works with **locally built** images, so pushing to a
-registry is entirely optional - do it only if you want to share images across
+registry is entirely optional — do it only if you want to share images across
 hosts. If you skip it, keep using the local `myimage` / `mytcpdumper` tags.
 
 ```
@@ -201,7 +201,7 @@ docker push xxradar/mytcpdumper:01
 
 ## 3. Dissecting an image (lab3)
 
-`docker save` serialises an image - all of its layers and metadata - into a
+`docker save` serialises an image — all of its layers and metadata — into a
 single tar stream. This is the offline, registry-free way to see exactly what
 ships inside an image.
 
@@ -227,8 +227,8 @@ tree .
   config, and one directory per layer, each containing a `layer.tar`.
 
 - **Containerd / OCI format (modern default):** an `oci-layout` marker, an
-  `index.json`, and a `blobs/sha256/` directory. *Every* blob - image config,
-  manifest, and each layer - is a file named after its digest under
+  `index.json`, and a `blobs/sha256/` directory. *Every* blob — image config,
+  manifest, and each layer — is a file named after its digest under
   `blobs/sha256/`. Config and manifest blobs are JSON; layer blobs are (usually
   gzip-compressed) tarballs. This is what you get on a current Docker install:
 
@@ -243,7 +243,7 @@ The lesson: the secret we "deleted" in the Dockerfile is still fully
 recoverable, because it lives in the layer where it was `ADD`ed. Unpack every
 layer into its own directory and search across all of them.
 
-**Classic format** - each layer is a `layer.tar`:
+**Classic format** — each layer is a `layer.tar`:
 
 ```
 for d in */ ; do
@@ -252,7 +252,7 @@ done
 grep -Rl secret.txt ./extract/ 2>/dev/null
 ```
 
-**Containerd / OCI format** - layers are blobs under `blobs/sha256/`. Not every
+**Containerd / OCI format** — layers are blobs under `blobs/sha256/`. Not every
 blob is a tar (config and manifest are JSON), so probe each one before
 unpacking:
 
@@ -271,7 +271,7 @@ find ./extract -name secret.txt
 ```
 
 On a containerd-store host this prints something like
-`./extract/layer_4/secret.txt` - and the "deleted" secret is right there:
+`./extract/layer_4/secret.txt` — and the "deleted" secret is right there:
 
 ```
 cat ./extract/layer_4/secret.txt
@@ -279,7 +279,7 @@ cat ./extract/layer_4/secret.txt
 ```
 
 > A ready-made helper script that handles both layouts (and can save the image
-> for you) is a convenient one-shot - see the community `extract-image-blobs.sh`
+> for you) is a convenient one-shot — see the community `extract-image-blobs.sh`
 > pattern, or just reuse the loops above.
 
 ### Scanning with Trivy
@@ -314,7 +314,7 @@ trivy image --scanners secret myimage
 
 ## 4. Dissecting a running container (lab4)
 
-So far we have looked at images - static, on-disk artefacts. A **running
+So far we have looked at images — static, on-disk artefacts. A **running
 container** is different: it is a live process with a merged root filesystem and
 a set of kernel namespaces. Everything `docker inspect` prints comes from
 querying that live process and its configuration.
@@ -367,14 +367,14 @@ docker inspect www | jq -r '.[].Driver'
 
 Because the snapshot path is **not** exposed by `inspect`, read it straight from
 the running process's mount table instead. The overlay mount lists `lowerdir`,
-`upperdir`, and `workdir` - the `upperdir` is the writable layer:
+`upperdir`, and `workdir` — the `upperdir` is the writable layer:
 
 ```
 PID="$(docker inspect www | jq -r '.[].State.Pid')"
 sudo grep -w overlay /proc/$PID/mountinfo
 ```
 
-Rather than hardcode a base path (it varies - Docker's bundled containerd uses
+Rather than hardcode a base path (it varies — Docker's bundled containerd uses
 `/var/lib/docker/containerd/daemon/io.containerd.snapshotter.v1.overlayfs/...`,
 while a host-level containerd uses
 `/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/...`), pull the exact
@@ -389,7 +389,7 @@ sudo ls -l "$UPPER"
 
 ### Proving that runtime writes land in the writable layer
 
-Write a file inside the container, then find it on the host - two ways.
+Write a file inside the container, then find it on the host — two ways.
 
 ```
 docker exec -it www bash
@@ -419,7 +419,7 @@ sudo cat "$UPPER/text.txt"
 The key takeaway: **runtime writes go only to the container's private writable
 layer**, never back into the shared read-only image layers. That is why the
 `text.txt` you just created shows up in the snapshot `upperdir` but would *not*
-appear if you unpacked the image blobs - it was never part of the image.
+appear if you unpacked the image blobs — it was never part of the image.
 
 If you just want the whole merged filesystem as one flat tarball, skip the
 snapshot hunt entirely:
@@ -436,7 +436,7 @@ A container's isolation is built from Linux **namespaces**: separate views of
 the process tree (`pid`), network stack (`net`), mounts (`mnt`), hostname
 (`uts`), IPC, and more. From the host, each shows up as a numeric namespace ID
 on the container's main process, and two processes sharing a namespace share the
-same ID - so this is how you tell "who is in the same sandbox".
+same ID — so this is how you tell "who is in the same sandbox".
 
 ```
 mkdir ../lab5
@@ -450,7 +450,7 @@ echo $PID
 sudo ps -ax -n -o pid,netns,utsns,ipcns,mntns,pidns,cmd | grep $PID
 ```
 
-Take the network namespace ID from that output and list everything sharing it -
+Take the network namespace ID from that output and list everything sharing it —
 you should see the container's processes grouped together:
 
 ```
@@ -460,7 +460,7 @@ sudo ps -ax -n -o pid,netns,utsns,ipcns,mntns,pidns,cmd | grep $NETNS
 
 ### Entering a container with nsenter
 
-`nsenter` joins an existing set of namespaces by PID - the low-level equivalent
+`nsenter` joins an existing set of namespaces by PID — the low-level equivalent
 of `docker exec`, but it works directly against the kernel and does not depend
 on the Docker CLI at all. Once inside, you are effectively a process in that
 container:
@@ -491,10 +491,10 @@ curl -kv 127.0.0.1:80
 A `--privileged` container keeps almost all Linux capabilities and gets access
 to host devices. That combination is enough to escape: the host's block devices
 appear as `/dev` nodes inside the container, so you can mount the host root
-filesystem and read (or write) anything on it - including credentials.
+filesystem and read (or write) anything on it — including credentials.
 
 Start by listing the host's block devices and finding the one mounted at `/`.
-On an AWS EC2 host that is `xvda` - the 30 GB EBS root disk - whose partition
+On an AWS EC2 host that is `xvda` — the 30 GB EBS root disk — whose partition
 `xvda1` carries the root filesystem. The `loop*` entries are just
 squashfs-mounted snap packages and can be ignored:
 
@@ -513,7 +513,7 @@ docker exec -it www3 bash
 ```
 
 Inside the container, mount that root partition. The device path is
-`/dev/<name>` taken from `lsblk` - here `/dev/xvda1`. Mind the `/dev/` prefix:
+`/dev/<name>` taken from `lsblk` — here `/dev/xvda1`. Mind the `/dev/` prefix:
 `mount /xvda/xvda1 ...` fails with *"special device does not exist"*. The exact
 name is platform-dependent: `/dev/xvda1` on AWS EC2, often `/dev/vda1` on
 KVM/OpenStack, `/dev/sda1` on bare metal:
@@ -534,12 +534,12 @@ cd /tmp/host-fs/
 ```
 
 > **Takeaway:** never run untrusted workloads with `--privileged`. It is not a
-> "slightly stronger" container - it is effectively root on the host.
+> "slightly stronger" container — it is effectively root on the host.
 
 ### Mounting the Docker socket
 
 Mounting `/var/run/docker.sock` into a container hands that container full
-control of the Docker daemon - and therefore the host. Anything that can talk to
+control of the Docker daemon — and therefore the host. Anything that can talk to
 the socket can launch new containers, including privileged ones that mount the
 host filesystem. This is one of the most common real-world misconfigurations.
 
@@ -548,7 +548,7 @@ docker run -d -v /var/run/docker.sock:/var/run/docker.sock --name www4 nginx:1.2
 docker exec -it www4 bash
 ```
 
-Download a static Docker client and point it at the mounted socket - from here
+Download a static Docker client and point it at the mounted socket — from here
 you are effectively the host's Docker daemon:
 
 ```
@@ -568,7 +568,7 @@ cd docker
 ### Host PID and host network
 
 Sharing the host PID namespace (`--pid host`) drops process-tree isolation: the
-container can see - and, with the right capabilities, signal or inspect - every
+container can see — and, with the right capabilities, signal or inspect — every
 process on the host.
 
 ```
@@ -577,18 +577,18 @@ docker run -it --rm --pid host xxradar/hackon
 
 `--net host` removes network isolation entirely: the container shares the host's
 interfaces and localhost, so any service bound to `127.0.0.1` on the host is now
-reachable from the container - often exposing admin endpoints assumed to be
+reachable from the container — often exposing admin endpoints assumed to be
 host-only.
 
 ```
 docker run -it --rm --net host xxradar/hackon
 ```
 
-### Notes - capabilities and mounts
+### Notes — capabilities and mounts
 
 A few more tools for poking at a container's mounts and capabilities. Most need
 a target PID, so grab one first (here, the `www` nginx container from the
-earlier labs) - otherwise `findmnt -N` fails with *"option requires an
+earlier labs) — otherwise `findmnt -N` fails with *"option requires an
 argument"* and `/proc//mountinfo` does not exist:
 
 ```
@@ -604,7 +604,7 @@ sudo cat /proc/$PID/mountinfo
 ```
 
 The `filecap` / `pscap` / `netcap` tools report file and process capabilities,
-but they are **not installed by default** - they live in `libcap-ng-utils`
+but they are **not installed by default** — they live in `libcap-ng-utils`
 (while the `getcap` / `setcap` pair lives in `libcap2-bin`):
 
 ```
@@ -632,8 +632,8 @@ for a one-shot "what can this container do" report.
 ## 6. Watching the kernel with eBPF
 
 Everything above inspects containers from user space. **eBPF** lets you observe
-(and enforce policy on) container behaviour from *inside the kernel* - syscalls,
-network connections, process execution - with very low overhead. The three tools
+(and enforce policy on) container behaviour from *inside the kernel* — syscalls,
+network connections, process execution — with very low overhead. The three tools
 below are runtime security/observability agents built on eBPF. They run
 privileged and share host namespaces because they need kernel-wide visibility.
 
@@ -652,7 +652,7 @@ docker run --name tracee --rm -it \
 
 > On cloud kernels (e.g. AWS EC2) Tracee logs a warning like *"KConfig: could
 > not check enabled kconfig features ... /boot/config-$(uname -r): no such file
-> or directory"*. This is harmless - those images simply don't ship the kernel
+> or directory"*. This is harmless — those images simply don't ship the kernel
 > config in `/boot`, so Tracee falls back to assumed values and keeps tracing.
 > If the file does exist on your host, mount it to silence the warning:
 > `-v /boot/config-$(uname -r):/boot/config-$(uname -r):ro`.
@@ -675,7 +675,7 @@ Modern Falco (0.44+) uses a `modern_ebpf` probe, which brings two prerequisites
 you will hit on a busy cloud host:
 
 - **Run it as root.** As a normal user the probe fails with `libpman: ring
-  buffer map type is not supported (Operation not permitted)` - the eBPF ring
+  buffer map type is not supported (Operation not permitted)` — the eBPF ring
   buffer needs privileges. Use `sudo`.
 - **Raise the inotify limits.** Falco watches its config via inotify; if the
   host's limits are exhausted you get `Failed to allocate directory watch: Too
@@ -728,7 +728,7 @@ docker exec tetragon-container tetra getevents -o compact
 ```
 
 Now a **TracingPolicy** that not only reports but actively kills any `curl`
-process attempting to connect anywhere outside loopback - a concrete example of
+process attempting to connect anywhere outside loopback — a concrete example of
 in-kernel enforcement:
 
 ```
@@ -779,15 +779,15 @@ docker run -d --name tetragon-container --rm --pull always \
 ## 7. From containers to pods (Kubernetes)
 
 Kubernetes builds on the exact same primitives. A **pod** is a group of
-containers that *share* some namespaces - most notably the network namespace (so
-they share an IP and can talk over `localhost`) and any declared volumes - while
+containers that *share* some namespaces — most notably the network namespace (so
+they share an IP and can talk over `localhost`) and any declared volumes — while
 keeping separate mount and (by default) PID namespaces. The "pause" container
 you will see on the node is what holds those shared namespaces open.
 
 ### Create a multi-container pod
 
 This pod runs nginx and redis side by side, sharing an `emptyDir` volume mounted
-at a different path in each container - a minimal illustration of how sidecars
+at a different path in each container — a minimal illustration of how sidecars
 share storage:
 
 ```
@@ -821,7 +821,7 @@ kubectl get pod mcpod -o wide
 
 `kubectl` deals in Kubernetes objects, but to inspect namespaces you need the
 **host PID** of each container's process. The `kubectl get ... -o wide` above
-shows which node the pod landed on - SSH to that node for the rest.
+shows which node the pod landed on — SSH to that node for the rest.
 
 Kubernetes talks to the container runtime through the CRI, so on a containerd
 node use `crictl`. Point it at the containerd socket if it is not already set in
@@ -831,7 +831,7 @@ node use `crictl`. Point it at the containerd socket if it is not already set in
 export CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock
 ```
 
-Start from the **pod sandbox** - the `pause` container that owns the shared
+Start from the **pod sandbox** — the `pause` container that owns the shared
 namespaces the app containers join:
 
 ```
@@ -864,7 +864,7 @@ sudo ps -ax -n -o pid,netns,utsns,ipcns,mntns,pidns,cmd | grep -E "$NGINX_PID|$R
 ```
 
 The pause container, nginx, and redis should all show the same `netns` value,
-while each has its own `mntns` - exactly the "shared network, private
+while each has its own `mntns` — exactly the "shared network, private
 filesystem" model that defines a pod.
 
 ## Wrapping up
